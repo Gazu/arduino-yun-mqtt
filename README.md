@@ -1,104 +1,96 @@
-# Arduino-Yun-MQTT
+# Arduino Yun MQTT Example
 
-Una forma de comunicar Arduino Yun con otros sistemas es a traves de mensajes de colas como MQTT.
+Example project demonstrating how to connect an **Arduino Yún** to an **MQTT broker** and exchange messages using the MQTT publish/subscribe protocol.
 
-MQTT (Message Queue Telemetry Transport) es un protocolo de conectividad enfocado a M2M (machine-to-machine) y al IOT (Internet of Things) ya que se ha diseñado para ser un protocolo de mensajería extremadamente ligero basado en TCP.
+This project shows a simple IoT architecture where an Arduino device publishes and receives messages through an MQTT messaging server.
 
-Los mensajes se intercambian a través de un servidor de mensajería de MQTT (Broker). El cliente y el servidor de MQTT manejan las complejidades de entregar mensajes de forma fiable para la aplicación móvil y mantener bajo el precio de la gestión de red.
+## Overview
 
-Unas de sus ventajas son:
+MQTT (Message Queue Telemetry Transport) is a lightweight messaging protocol designed for machine-to-machine (M2M) communication and Internet of Things (IoT) devices.
 
-  - Está especialmente adaptado para utilizar un ancho de banda mínimo
-  - Es ideal para utilizar redes inalámbricas
-  - Consume muy poca energía
-  - Es muy rápido y posibilita un tiempo de respuesta superior al resto de protocolos web actuales
-  - Permite una gran fiabilidad si es necesario
-  - Requiere pocos recursos procesadores y memorias
+It works using a **publish/subscribe model** where devices send messages to a central server called a **broker**.
 
-# Pre-requisitos:
-  - Instalar [Node.js](https://nodejs.org/en/).
-  - Instalar [IDE Arduino](https://www.arduino.cc/en/Main/Software).
+Key advantages of MQTT:
 
-# Instalación:
-  - Instalar [Mosquitto](http://mosquitto.org/download/). 
-  - Instalar el [npm mqtt](https://www.npmjs.com/package/mqtt).
-  ```sh
-  $ npm install mqtt --save
-  ```
-  - Instalar Libreria Arduino [pubsubclient](https://github.com/knolleary/pubsubclient).
+- Very lightweight protocol
+- Low bandwidth usage
+- Low power consumption
+- Fast communication
+- Reliable message delivery
+- Ideal for embedded and wireless environments
 
-# Desarrollo
-  - Crear archivo MQTT.js para el servidor.
-    ```sh
-    var mqtt = require('mqtt')
-    var client  = mqtt.connect('mqtt://localhost:1883')
- 
-    client.on('connect', function () {
-      client.subscribe('outTopic')
-      client.publish('inTopic', 'Hello Arduino')
-    })
- 
-    client.on('message', function (topic, message,packet) { 
-      console.log(`Mensaje ${message.toString()}`)
-      client.end()
-    })
-    ```
-  - Crear codigo Arduino, y cargarlo en la Arduino Yun
-    ```sh
-    #include <Bridge.h>
-    #include <BridgeClient.h>
-    #include <PubSubClient.h>
+## Architecture
 
-    IPAddress server(192, 168, 1, 88); //Ip de Servidor donde se levanto Mosquitto
+Arduino Yun → MQTT Broker → Subscriber / Other systems
 
-    BridgeClient briClient;
-    PubSubClient client(briClient);
+The Arduino acts as a **client** that can:
 
-    void callback(char* topic, byte* payload, unsigned int length) {
-      Serial.print("Mensaje recivido [");
-      Serial.print(topic);
-      Serial.print("] ");
-      for (int i=0;i<length;i++) {
-        Serial.print((char)payload[i]);
-      }
-      Serial.println();
-      client.publish("outTopic","Hello Node.js");
-    }
+- Publish messages to a topic
+- Subscribe to topics
+- Receive messages from other systems
 
-    void reconnect() {
-      while (!client.connected()) {
-        Serial.print("MQTT conectando...");
-        if(client.connect("")){
-          Serial.println("conectado !");
-          client.publish("outTopic","Hello Node.js");
-          client.subscribe("inTopic");
-        }else{
-          Serial.print("fallo, rc=");
-          Serial.print(client.state());
-          Serial.println(" try again in 5 seconds");
-          delay(5000);
-        }
-      }
-    }
+## Repository Structure
 
-    void setup(){
-      Serial.begin(57600);
-      client.setServer(server, 1883);
-      client.setCallback(callback);
-      Bridge.begin();
-      delay(1500);
-    }
+Arduino-Yun-MQTT.ino   # Arduino sketch
+MQTT.js                # Node.js MQTT client example
+README.md              # Project documentation
 
-    void loop(){
-      if(!client.connected()) {
-        reconnect();
-      }
-      client.loop();
-    }
-    ```
-# Ejecución
-  - Ejecutar mosquitto.
-  - Cargar el Código a la Arduino Yun
-  - Ejecutar en codigo de Node.js
-  
-  ![alt text](https://4.bp.blogspot.com/-KPck_fy-BOQ/WBp7i3-awtI/AAAAAAAABNU/LaQaD1KVxucBL5OSwjqy11RXMO4ON6pMgCLcB/s1600/img3.jpg)
+## Requirements
+
+Before running the project you need:
+
+- Arduino IDE
+- Node.js
+- MQTT Broker (Mosquitto recommended)
+- Arduino PubSubClient library
+
+## Installation
+
+### 1. Install MQTT broker (Mosquitto)
+
+Example on Linux:
+
+sudo apt install mosquitto mosquitto-clients
+
+### 2. Install Node.js MQTT client
+
+npm install mqtt --save
+
+### 3. Install Arduino MQTT library
+
+Install **PubSubClient** in the Arduino IDE.
+
+## Example Node.js Client
+
+var mqtt = require('mqtt')
+var client  = mqtt.connect('mqtt://localhost:1883')
+
+client.on('connect', function () {
+  client.subscribe('outTopic')
+  client.publish('inTopic', 'Hello Arduino')
+})
+
+client.on('message', function (topic, message) {
+  console.log(message.toString())
+})
+
+## Example Use Cases
+
+This project can be used for:
+
+- IoT device communication
+- Sensor data transmission
+- Home automation
+- Remote monitoring systems
+- Embedded device messaging
+
+## Author
+
+**Sergio Marín Boza**  
+Software Architect | Backend & Enterprise Systems  
+
+GitHub  
+https://github.com/Gazu  
+
+Website  
+https://smb-tech.cl/
